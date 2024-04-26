@@ -48,12 +48,16 @@ func (backend *Backend) Store(bom *sbom.Document, opts *options.StoreOptions) er
 
 	defer tx.Client().Close()
 
-	documentCreate := tx.Document.Create().
-		SetMetadata(metadataToEnt(ctx, tx, bom.Metadata)).
-		SetNodeList(nodeListToEnt(ctx, tx, bom.NodeList))
+	metadata := metadataToEnt(ctx, tx, bom.Metadata)
+	nodeList := nodeListToEnt(ctx, tx, bom.NodeList)
 
-	_, err = documentCreate.Save(ctx)
-	if err != nil && errors.Is(err, sql.ErrNoRows) {
+	if metadata == nil || nodeList == nil {
+		// Document already present in database.
+		return nil
+	}
+
+	_, err = tx.Document.Create().SetMetadata(metadata).SetNodeList(nodeList).Save(ctx)
+	if err != nil && !ent.IsConstraintError(err) {
 		return fmt.Errorf("failed to save document: %w", err)
 	}
 
@@ -101,7 +105,7 @@ func documentTypesToEnt(ctx context.Context, tx *ent.Tx, docTypes []*sbom.Docume
 			SetNillableType(&typeName)
 
 		entDocType, err := docTypeCreate.Save(ctx)
-		if err != nil && errors.Is(err, sql.ErrNoRows) {
+		if err != nil && !ent.IsConstraintError(err) {
 			panic(err)
 		}
 
@@ -117,15 +121,13 @@ func metadataToEnt(ctx context.Context, tx *ent.Tx, md *sbom.Metadata) *ent.Meta
 		SetVersion(md.Version).
 		SetName(md.Name).
 		SetDate(md.Date.AsTime()).
-		SetComment(md.Comment)
-
-	metadata, err := metadataCreate.
+		SetComment(md.Comment).
 		AddAuthors(personsToEnt(ctx, tx, md.Authors)...).
 		AddDocumentTypes(documentTypesToEnt(ctx, tx, md.DocumentTypes)...).
-		AddTools(toolsToEnt(ctx, tx, md.Tools)...).
-		Save(ctx)
+		AddTools(toolsToEnt(ctx, tx, md.Tools)...)
 
-	if err != nil && errors.Is(err, sql.ErrNoRows) {
+	metadata, err := metadataCreate.Save(ctx)
+	if err != nil && !ent.IsConstraintError(err) {
 		panic(err)
 	}
 
@@ -135,20 +137,25 @@ func metadataToEnt(ctx context.Context, tx *ent.Tx, md *sbom.Metadata) *ent.Meta
 func nodeListToEnt(ctx context.Context, tx *ent.Tx, nodeList *sbom.NodeList) *ent.NodeList {
 	nodeListCreate := tx.NodeList.Create().SetRootElements(nodeList.RootElements)
 
-	entNodeList, err := nodeListCreate.AddNodes(nodesToEnt(ctx, tx, nodeList.Nodes)...).Save(ctx)
-	if err != nil && errors.Is(err, sql.ErrNoRows) {
+	entNodeList, err := nodeListCreate.Save(ctx)
+	if err != nil && !ent.IsConstraintError(err) {
 		panic(err)
+	}
+
+	if entNodeList != nil {
+		nodesToEnt(ctx, tx, nodeList.Nodes, entNodeList.ID)
 	}
 
 	return entNodeList
 }
 
-func nodesToEnt(ctx context.Context, tx *ent.Tx, nodes []*sbom.Node) ent.Nodes {
+func nodesToEnt(ctx context.Context, tx *ent.Tx, nodes []*sbom.Node, nodeListID int) ent.Nodes {
 	var entNodes ent.Nodes
 
 	for _, node := range nodes {
 		nodeCreate := tx.Node.Create().
 			SetID(node.Id).
+			SetNodeListID(nodeListID).
 			SetAttribution(node.Attribution).
 			SetBuildDate(node.BuildDate.AsTime()).
 			SetComment(node.Comment).
@@ -180,8 +187,12 @@ func nodesToEnt(ctx context.Context, tx *ent.Tx, nodes []*sbom.Node) ent.Nodes {
 			AddSuppliers()
 
 		entNode, err := nodeCreate.Save(ctx)
-		if err != nil && errors.Is(err, sql.ErrNoRows) {
-			panic(err)
+		if err != nil {
+			if !ent.IsConstraintError(err) {
+				panic(err)
+			}
+
+			continue
 		}
 
 		entNodes = append(entNodes, entNode)
@@ -203,7 +214,7 @@ func personsToEnt(ctx context.Context, tx *ent.Tx, persons []*sbom.Person) ent.P
 			AddContacts(personsToEnt(ctx, tx, person.Contacts)...).
 			Save(ctx)
 
-		if err != nil && errors.Is(err, sql.ErrNoRows) {
+		if err != nil && !ent.IsConstraintError(err) {
 			panic(err)
 		}
 
@@ -223,7 +234,7 @@ func toolsToEnt(ctx context.Context, tx *ent.Tx, tools []*sbom.Tool) ent.Tools {
 			SetVersion(tool.Version).
 			Save(ctx)
 
-		if err != nil && errors.Is(err, sql.ErrNoRows) {
+		if err != nil && !ent.IsConstraintError(err) {
 			panic(err)
 		}
 
