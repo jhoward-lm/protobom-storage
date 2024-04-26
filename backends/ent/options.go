@@ -45,10 +45,6 @@ func WithDatabaseFile(file string) Option {
 }
 
 func (backend *Backend) WithDatabaseFile(file string) *Backend {
-	if backend == nil {
-		backend = NewBackend()
-	}
-
 	backend.Options.DatabaseFile = file
 
 	return backend
