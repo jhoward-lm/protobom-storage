@@ -24,69 +24,29 @@ import (
 // Enable SQLite foreign key support.
 const dsnParams string = "?_pragma=foreign_keys(1)"
 
-type (
-	// EntBackend implements the protobom model.v1.storage.Backend interface.
-	EntBackend struct{}
-
-	// EntOptions contains options specific to the protobom ent backend.
-	EntOptions struct {
-		DatabaseFile string
-	}
-)
-
 var errInvalidEntOptions = errors.New("invalid ent backend options")
 
-// NewEntOptions returns an EntOptions with optional file path for database file.
-//
-// If not provided, the database file will default to ":memory:" for a temporary, in-memory database.
-func NewEntOptions(file string) EntOptions {
-	if file == "" {
-		file = ":memory:"
-	}
-
-	return EntOptions{DatabaseFile: file}
-}
-
-// Store implements the model.v1.storage.Backend interface
-func (EntBackend) Store(bom *sbom.Document, opts *options.StoreOptions) error {
+// Store implements the model.v1.storage.Backend interface.
+func (backend *Backend) Store(bom *sbom.Document, opts *options.StoreOptions) error {
 	var err error
 
 	if opts == nil {
-		opts = &options.StoreOptions{}
+		opts = &options.StoreOptions{
+			BackendOptions: backend.Options,
+		}
 	}
 
-	if opts.BackendOptions == nil {
-		opts.BackendOptions = NewEntOptions("")
-	}
-
-	entOpts, ok := opts.BackendOptions.(EntOptions)
+	entOpts, ok := opts.BackendOptions.(BackendOptions)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInvalidEntOptions, opts.BackendOptions)
 	}
 
-	// Register the SQLite driver as "sqlite3".
-	if !slices.Contains(sql.Drivers(), "sqlite3") {
-		sqlite.RegisterAsSQLITE3()
-	}
-
-	client, err := ent.Open("sqlite3", fmt.Sprintf("%s%s", entOpts.DatabaseFile, dsnParams))
+	tx, ctx, err := clientSetup(entOpts.DatabaseFile)
 	if err != nil {
-		return fmt.Errorf("failed opening connection to sqlite: %w", err)
+		return fmt.Errorf("%w", err)
 	}
 
-	defer client.Close()
-
-	tx, err := client.Tx(context.Background())
-	if err != nil {
-		return fmt.Errorf("failed to create transactional client: %w", err)
-	}
-
-	ctx := ent.NewTxContext(context.Background(), tx)
-
-	// Run the auto migration tool.
-	if err := client.Schema.Create(ctx); err != nil {
-		return fmt.Errorf("failed creating schema resources: %w", err)
-	}
+	defer tx.Client().Close()
 
 	documentCreate := tx.Document.Create().
 		SetMetadata(metadataToEnt(ctx, tx, bom.Metadata)).
@@ -102,6 +62,32 @@ func (EntBackend) Store(bom *sbom.Document, opts *options.StoreOptions) error {
 	}
 
 	return nil
+}
+
+func clientSetup(dbFile string) (*ent.Tx, context.Context, error) {
+	// Register the SQLite driver as "sqlite3".
+	if !slices.Contains(sql.Drivers(), "sqlite3") {
+		sqlite.RegisterAsSQLITE3()
+	}
+
+	client, err := ent.Open("sqlite3", fmt.Sprintf("%s%s", dbFile, dsnParams))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed opening connection to sqlite: %w", err)
+	}
+
+	tx, err := client.Tx(context.Background())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create transactional client: %w", err)
+	}
+
+	ctx := ent.NewTxContext(context.Background(), tx)
+
+	// Run the auto migration tool.
+	if err := client.Schema.Create(ctx); err != nil {
+		return nil, nil, fmt.Errorf("failed creating schema resources: %w", err)
+	}
+
+	return tx, ctx, nil
 }
 
 func documentTypesToEnt(ctx context.Context, tx *ent.Tx, docTypes []*sbom.DocumentType) ent.DocumentTypes {
@@ -159,6 +145,7 @@ func nodeListToEnt(ctx context.Context, tx *ent.Tx, nodeList *sbom.NodeList) *en
 
 func nodesToEnt(ctx context.Context, tx *ent.Tx, nodes []*sbom.Node) ent.Nodes {
 	var entNodes ent.Nodes
+
 	for _, node := range nodes {
 		nodeCreate := tx.Node.Create().
 			SetID(node.Id).
@@ -193,7 +180,6 @@ func nodesToEnt(ctx context.Context, tx *ent.Tx, nodes []*sbom.Node) ent.Nodes {
 			AddSuppliers()
 
 		entNode, err := nodeCreate.Save(ctx)
-
 		if err != nil && errors.Is(err, sql.ErrNoRows) {
 			panic(err)
 		}
@@ -206,6 +192,7 @@ func nodesToEnt(ctx context.Context, tx *ent.Tx, nodes []*sbom.Node) ent.Nodes {
 
 func personsToEnt(ctx context.Context, tx *ent.Tx, persons []*sbom.Person) ent.Persons {
 	var entPersons ent.Persons
+
 	for _, person := range persons {
 		entPerson, err := tx.Person.Create().
 			SetName(person.Name).
@@ -228,6 +215,7 @@ func personsToEnt(ctx context.Context, tx *ent.Tx, persons []*sbom.Person) ent.P
 
 func toolsToEnt(ctx context.Context, tx *ent.Tx, tools []*sbom.Tool) ent.Tools {
 	var entTools ent.Tools
+
 	for _, tool := range tools {
 		entTool, err := tx.Tool.Create().
 			SetName(tool.Name).

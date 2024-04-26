@@ -11,7 +11,7 @@ import (
 	"github.com/protobom/storage/pkg/options"
 )
 
-// Retrieve implements the model.v1.storage.Backend interface
-func (EntBackend) Retrieve(string, *options.RetrieveOptions) (*sbom.Document, error) {
+// Retrieve implements the model.v1.storage.Backend interface.
+func (Backend) Retrieve(string, *options.RetrieveOptions) (*sbom.Document, error) {
 	return nil, nil
 }
