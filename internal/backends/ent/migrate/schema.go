@@ -255,6 +255,13 @@ var (
 		Name:       "node_lists",
 		Columns:    NodeListsColumns,
 		PrimaryKey: []*schema.Column{NodeListsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "nodelist_root_elements",
+				Unique:  true,
+				Columns: []*schema.Column{NodeListsColumns[1]},
+			},
+		},
 	}
 	// PersonsColumns holds the columns for the "persons" table.
 	PersonsColumns = []*schema.Column{
