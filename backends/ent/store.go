@@ -17,7 +17,7 @@ import (
 
 	"github.com/protobom/storage/internal/backends/ent"
 	"github.com/protobom/storage/internal/backends/ent/documenttype"
-	ent_node "github.com/protobom/storage/internal/backends/ent/node"
+	"github.com/protobom/storage/internal/backends/ent/node"
 	"github.com/protobom/storage/pkg/options"
 )
 
@@ -152,29 +152,29 @@ func nodeListToEnt(ctx context.Context, tx *ent.Tx, nodeList *sbom.NodeList) *en
 func nodesToEnt(ctx context.Context, tx *ent.Tx, nodes []*sbom.Node, nodeListID int) ent.Nodes {
 	var entNodes ent.Nodes
 
-	for _, node := range nodes {
+	for _, n := range nodes {
 		nodeCreate := tx.Node.Create().
-			SetID(node.Id).
+			SetID(n.Id).
 			SetNodeListID(nodeListID).
-			SetAttribution(node.Attribution).
-			SetBuildDate(node.BuildDate.AsTime()).
-			SetComment(node.Comment).
-			SetCopyright(node.Copyright).
-			SetDescription(node.Description).
-			SetFileName(node.FileName).
-			SetFileTypes(node.FileTypes).
-			SetLicenseComments(node.LicenseComments).
-			SetLicenseConcluded(node.LicenseConcluded).
-			SetLicenses(node.Licenses).
-			SetName(node.Name).
-			SetReleaseDate(node.ReleaseDate.AsTime()).
-			SetSourceInfo(node.SourceInfo).
-			SetSummary(node.Summary).
-			SetType(ent_node.Type(node.Type.String())).
-			SetURLDownload(node.UrlDownload).
-			SetURLHome(node.UrlHome).
-			SetValidUntilDate(node.ValidUntilDate.AsTime()).
-			SetVersion(node.Version)
+			SetAttribution(n.Attribution).
+			SetBuildDate(n.BuildDate.AsTime()).
+			SetComment(n.Comment).
+			SetCopyright(n.Copyright).
+			SetDescription(n.Description).
+			SetFileName(n.FileName).
+			SetFileTypes(n.FileTypes).
+			SetLicenseComments(n.LicenseComments).
+			SetLicenseConcluded(n.LicenseConcluded).
+			SetLicenses(n.Licenses).
+			SetName(n.Name).
+			SetReleaseDate(n.ReleaseDate.AsTime()).
+			SetSourceInfo(n.SourceInfo).
+			SetSummary(n.Summary).
+			SetType(node.Type(n.Type.String())).
+			SetURLDownload(n.UrlDownload).
+			SetURLHome(n.UrlHome).
+			SetValidUntilDate(n.ValidUntilDate.AsTime()).
+			SetVersion(n.Version)
 
 		nodeCreate.
 			AddEdgeTypes().
