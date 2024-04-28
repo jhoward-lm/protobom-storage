@@ -171,6 +171,11 @@ func (mc *MetadataCreate) check() error {
 	if _, ok := mc.mutation.Comment(); !ok {
 		return &ValidationError{Name: "comment", err: errors.New(`ent: missing required field "Metadata.comment"`)}
 	}
+	if v, ok := mc.mutation.ID(); ok {
+		if err := metadata.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Metadata.id": %w`, err)}
+		}
+	}
 	return nil
 }
 

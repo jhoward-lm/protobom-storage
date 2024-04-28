@@ -17,7 +17,11 @@ import (
 
 	"github.com/protobom/storage/internal/backends/ent"
 	"github.com/protobom/storage/internal/backends/ent/documenttype"
+	"github.com/protobom/storage/internal/backends/ent/externalreference"
+	"github.com/protobom/storage/internal/backends/ent/hashesentry"
+	"github.com/protobom/storage/internal/backends/ent/identifiersentry"
 	"github.com/protobom/storage/internal/backends/ent/node"
+	"github.com/protobom/storage/internal/backends/ent/purpose"
 	"github.com/protobom/storage/pkg/options"
 )
 
@@ -98,7 +102,7 @@ func documentTypesToEnt(ctx context.Context, tx *ent.Tx, docTypes []*sbom.Docume
 	entDocTypes := ent.DocumentTypes{}
 
 	for _, docType := range docTypes {
-		typeName := documenttype.Type(*docType.Type)
+		typeName := documenttype.Type(docType.Type.String())
 		docTypeCreate := tx.DocumentType.Create().
 			SetNillableName(docType.Name).
 			SetNillableDescription(docType.Description).
@@ -113,6 +117,46 @@ func documentTypesToEnt(ctx context.Context, tx *ent.Tx, docTypes []*sbom.Docume
 	}
 
 	return entDocTypes
+}
+
+func hashesToEnt(ctx context.Context, tx *ent.Tx, hashes map[int32]string) ent.HashesEntries {
+	var entHashes ent.HashesEntries
+
+	for alg, content := range hashes {
+		algString := sbom.HashAlgorithm(alg).String()
+		hashCreate := tx.HashesEntry.Create().
+			SetHashAlgorithmType(hashesentry.HashAlgorithmType(algString)).
+			SetHashData(content)
+
+		entHash, err := hashCreate.Save(ctx)
+		if err != nil && !ent.IsConstraintError(err) {
+			panic(err)
+		}
+
+		entHashes = append(entHashes, entHash)
+	}
+
+	return entHashes
+}
+
+func identifiersToEnt(ctx context.Context, tx *ent.Tx, identifiers map[int32]string) ent.IdentifiersEntries {
+	var entIdentifiers ent.IdentifiersEntries
+
+	for typ, value := range identifiers {
+		typeString := sbom.SoftwareIdentifierType(typ).String()
+		identifierCreate := tx.IdentifiersEntry.Create().
+			SetSoftwareIdentifierType(identifiersentry.SoftwareIdentifierType(typeString)).
+			SetSoftwareIdentifierValue(value)
+
+		entIdentifier, err := identifierCreate.Save(ctx)
+		if err != nil && !ent.IsConstraintError(err) {
+			panic(err)
+		}
+
+		entIdentifiers = append(entIdentifiers, entIdentifier)
+	}
+
+	return entIdentifiers
 }
 
 func metadataToEnt(ctx context.Context, tx *ent.Tx, md *sbom.Metadata) *ent.Metadata {
@@ -174,17 +218,16 @@ func nodesToEnt(ctx context.Context, tx *ent.Tx, nodes []*sbom.Node, nodeListID 
 			SetURLDownload(n.UrlDownload).
 			SetURLHome(n.UrlHome).
 			SetValidUntilDate(n.ValidUntilDate.AsTime()).
-			SetVersion(n.Version)
-
-		nodeCreate.
+			SetVersion(n.Version).
+			AddExternalReferences(refsToEnt(ctx, tx, n.ExternalReferences, n.Id)...).
+			AddHashes(hashesToEnt(ctx, tx, n.Hashes)...).
+			AddIdentifiers(identifiersToEnt(ctx, tx, n.Identifiers)...).
+			AddOriginators(personsToEnt(ctx, tx, n.Originators)...).
+			AddSuppliers(personsToEnt(ctx, tx, n.Suppliers)...).
+			AddPrimaryPurpose(purposesToEnt(ctx, tx, n.PrimaryPurpose)...).
+			// TODO
 			AddEdgeTypes().
-			AddExternalReferences().
-			AddHashes().
-			AddIdentifiers().
-			AddNodes().
-			AddOriginators().
-			AddPrimaryPurpose().
-			AddSuppliers()
+			AddNodes()
 
 		entNode, err := nodeCreate.Save(ctx)
 		if err != nil {
@@ -222,6 +265,51 @@ func personsToEnt(ctx context.Context, tx *ent.Tx, persons []*sbom.Person) ent.P
 	}
 
 	return entPersons
+}
+
+func purposesToEnt(ctx context.Context, tx *ent.Tx, purposes []sbom.Purpose) ent.Purposes {
+	var entPurposes ent.Purposes
+
+	for _, p := range purposes {
+		purposeCreate := tx.Purpose.Create().
+			SetPrimaryPurpose(purpose.PrimaryPurpose(p.String()))
+
+		entPurpose, err := purposeCreate.Save(ctx)
+		if err != nil && !ent.IsConstraintError(err) {
+			panic(err)
+		}
+
+		entPurposes = append(entPurposes, entPurpose)
+	}
+
+	return entPurposes
+}
+
+func refsToEnt(ctx context.Context, tx *ent.Tx, refs []*sbom.ExternalReference, nodeID string) ent.ExternalReferences {
+	var entRefs ent.ExternalReferences
+
+	for _, r := range refs {
+		extRefCreate := tx.ExternalReference.Create().
+			SetNodeID(nodeID).
+			SetAuthority(r.Authority).
+			SetComment(r.Comment).
+			SetType(externalreference.Type(r.Type.String())).
+			SetURL(r.Url).
+			AddHashes(hashesToEnt(ctx, tx, r.Hashes)...)
+
+		entRef, err := extRefCreate.Save(ctx)
+		if err != nil {
+			if !ent.IsConstraintError(err) {
+				panic(err)
+			}
+
+			continue
+		}
+
+		entRefs = append(entRefs, entRef)
+	}
+
+	return entRefs
 }
 
 func toolsToEnt(ctx context.Context, tx *ent.Tx, tools []*sbom.Tool) ent.Tools {
