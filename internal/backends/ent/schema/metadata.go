@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 type Metadata struct {
@@ -32,6 +33,12 @@ func (Metadata) Edges() []ent.Edge {
 		edge.To("authors", Person.Type),
 		edge.To("document_types", DocumentType.Type),
 		edge.To("document", Document.Type).Unique(),
+	}
+}
+
+func (Metadata) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("id", "version").Unique(),
 	}
 }
 

@@ -206,6 +206,13 @@ var (
 		Name:       "metadata",
 		Columns:    MetadataColumns,
 		PrimaryKey: []*schema.Column{MetadataColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "metadata_id_version",
+				Unique:  true,
+				Columns: []*schema.Column{MetadataColumns[0], MetadataColumns[1]},
+			},
+		},
 	}
 	// NodesColumns holds the columns for the "nodes" table.
 	NodesColumns = []*schema.Column{
