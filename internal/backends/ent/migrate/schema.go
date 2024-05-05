@@ -208,9 +208,9 @@ var (
 		PrimaryKey: []*schema.Column{MetadataColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "metadata_id_version",
+				Name:    "metadata_id_version_name",
 				Unique:  true,
-				Columns: []*schema.Column{MetadataColumns[0], MetadataColumns[1]},
+				Columns: []*schema.Column{MetadataColumns[0], MetadataColumns[1], MetadataColumns[2]},
 			},
 		},
 	}

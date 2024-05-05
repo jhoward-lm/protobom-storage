@@ -38,7 +38,7 @@ func (Metadata) Edges() []ent.Edge {
 
 func (Metadata) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("id", "version").Unique(),
+		index.Fields("id", "version", "name").Unique(),
 	}
 }
 
