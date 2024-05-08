@@ -50,7 +50,7 @@ func (Node) Edges() []ent.Edge {
 		edge.To("hashes", HashesEntry.Type),
 		edge.To("primary_purpose", Purpose.Type),
 		edge.To("nodes", Node.Type).Through("edge_types", EdgeType.Type),
-		edge.From("node_list", NodeList.Type).Ref("nodes").Required().Unique(),
+		edge.From("node_list", NodeList.Type).Ref("nodes").Unique(),
 	}
 }
 

@@ -236,7 +236,7 @@ var (
 		{Name: "valid_until_date", Type: field.TypeTime},
 		{Name: "attribution", Type: field.TypeJSON},
 		{Name: "file_types", Type: field.TypeJSON},
-		{Name: "node_list_nodes", Type: field.TypeInt},
+		{Name: "node_list_nodes", Type: field.TypeInt, Nullable: true},
 	}
 	// NodesTable holds the schema information for the "nodes" table.
 	NodesTable = &schema.Table{
@@ -248,7 +248,7 @@ var (
 				Symbol:     "nodes_node_lists_nodes",
 				Columns:    []*schema.Column{NodesColumns[20]},
 				RefColumns: []*schema.Column{NodeListsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
