@@ -15,21 +15,21 @@ import (
 )
 
 type nodeListSuite struct {
-	backendSuite[sbom.NodeList]
 	backend *backend.Backend[sbom.NodeList]
+	backendSuite[sbom.NodeList]
 }
 
-func (suite *nodeListSuite) BeforeTest(_suiteName, _testName string) {
-	suite.backend = backend.NewBackend[sbom.NodeList]().WithDatabaseFile(suite.dbFile)
+func (nls *nodeListSuite) BeforeTest(_suiteName, _testName string) {
+	nls.backend = backend.NewBackend[sbom.NodeList]().WithDatabaseFile(nls.dbFile)
 
-	if err := suite.backend.ClientSetup(); err != nil {
-		suite.T().Fatalf("%v", err)
+	if err := nls.backend.ClientSetup(); err != nil {
+		nls.T().Fatalf("%v", err)
 	}
 }
 
-func (suite *nodeListSuite) TestNodeListBackend_Store() {}
+func (*nodeListSuite) TestNodeListBackend_Store() {}
 
-func (suite *nodeListSuite) TestNodeListBackend_Retrieve() {}
+func (*nodeListSuite) TestNodeListBackend_Retrieve() {}
 
 func TestNodeListBackend(t *testing.T) {
 	t.Parallel()

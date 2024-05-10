@@ -15,21 +15,21 @@ import (
 )
 
 type externalReferenceSuite struct {
-	backendSuite[sbom.ExternalReference]
 	backend *backend.Backend[sbom.ExternalReference]
+	backendSuite[sbom.ExternalReference]
 }
 
-func (suite *externalReferenceSuite) BeforeTest(_suiteName, _testName string) {
-	suite.backend = backend.NewBackend[sbom.ExternalReference]().WithDatabaseFile(suite.dbFile)
+func (ers *externalReferenceSuite) BeforeTest(_suiteName, _testName string) {
+	ers.backend = backend.NewBackend[sbom.ExternalReference]().WithDatabaseFile(ers.dbFile)
 
-	if err := suite.backend.ClientSetup(); err != nil {
-		suite.T().Fatalf("%v", err)
+	if err := ers.backend.ClientSetup(); err != nil {
+		ers.T().Fatalf("%v", err)
 	}
 }
 
-func (suite *externalReferenceSuite) TestExternalReferenceBackend_Store() {}
+func (*externalReferenceSuite) TestExternalReferenceBackend_Store() {}
 
-func (suite *externalReferenceSuite) TestExternalReferenceBackend_Retrieve() {}
+func (*externalReferenceSuite) TestExternalReferenceBackend_Retrieve() {}
 
 func TestExternalReferenceBackend(t *testing.T) {
 	t.Parallel()

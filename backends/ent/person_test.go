@@ -15,21 +15,21 @@ import (
 )
 
 type personSuite struct {
-	backendSuite[sbom.Person]
 	backend *backend.Backend[sbom.Person]
+	backendSuite[sbom.Person]
 }
 
-func (suite *personSuite) BeforeTest(_suiteName, _testName string) {
-	suite.backend = backend.NewBackend[sbom.Person]().WithDatabaseFile(suite.dbFile)
+func (ps *personSuite) BeforeTest(_suiteName, _testName string) {
+	ps.backend = backend.NewBackend[sbom.Person]().WithDatabaseFile(ps.dbFile)
 
-	if err := suite.backend.ClientSetup(); err != nil {
-		suite.T().Fatalf("%v", err)
+	if err := ps.backend.ClientSetup(); err != nil {
+		ps.T().Fatalf("%v", err)
 	}
 }
 
-func (suite *personSuite) TestPersonBackend_Store() {}
+func (*personSuite) TestPersonBackend_Store() {}
 
-func (suite *personSuite) TestPersonBackend_Retrieve() {}
+func (*personSuite) TestPersonBackend_Retrieve() {}
 
 func TestPersonBackend(t *testing.T) {
 	t.Parallel()

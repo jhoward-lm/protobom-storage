@@ -15,21 +15,21 @@ import (
 )
 
 type hashesSuite struct {
-	backendSuite[map[sbom.HashAlgorithm]string]
 	backend *backend.Backend[map[sbom.HashAlgorithm]string]
+	backendSuite[map[sbom.HashAlgorithm]string]
 }
 
-func (suite *hashesSuite) BeforeTest(_suiteName, _testName string) {
-	suite.backend = backend.NewBackend[map[sbom.HashAlgorithm]string]().WithDatabaseFile(suite.dbFile)
+func (hs *hashesSuite) BeforeTest(_suiteName, _testName string) {
+	hs.backend = backend.NewBackend[map[sbom.HashAlgorithm]string]().WithDatabaseFile(hs.dbFile)
 
-	if err := suite.backend.ClientSetup(); err != nil {
-		suite.T().Fatalf("%v", err)
+	if err := hs.backend.ClientSetup(); err != nil {
+		hs.T().Fatalf("%v", err)
 	}
 }
 
-func (suite *hashesSuite) TestHashesBackend_Store() {}
+func (*hashesSuite) TestHashesBackend_Store() {}
 
-func (suite *hashesSuite) TestHashesBackend_Retrieve() {}
+func (*hashesSuite) TestHashesBackend_Retrieve() {}
 
 func TestHashesBackend(t *testing.T) {
 	t.Parallel()

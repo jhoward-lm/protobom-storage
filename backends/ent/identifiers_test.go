@@ -15,21 +15,21 @@ import (
 )
 
 type identifiersSuite struct {
-	backendSuite[map[sbom.SoftwareIdentifierType]string]
 	backend *backend.Backend[map[sbom.SoftwareIdentifierType]string]
+	backendSuite[map[sbom.SoftwareIdentifierType]string]
 }
 
-func (suite *identifiersSuite) BeforeTest(_suiteName, _testName string) {
-	suite.backend = backend.NewBackend[map[sbom.SoftwareIdentifierType]string]().WithDatabaseFile(suite.dbFile)
+func (is *identifiersSuite) BeforeTest(_suiteName, _testName string) {
+	is.backend = backend.NewBackend[map[sbom.SoftwareIdentifierType]string]().WithDatabaseFile(is.dbFile)
 
-	if err := suite.backend.ClientSetup(); err != nil {
-		suite.T().Fatalf("%v", err)
+	if err := is.backend.ClientSetup(); err != nil {
+		is.T().Fatalf("%v", err)
 	}
 }
 
-func (suite *identifiersSuite) TestIdentifiersBackend_Store() {}
+func (*identifiersSuite) TestIdentifiersBackend_Store() {}
 
-func (suite *identifiersSuite) TestIdentifiersBackend_Retrieve() {}
+func (*identifiersSuite) TestIdentifiersBackend_Retrieve() {}
 
 func TestIdentifiersBackend(t *testing.T) {
 	t.Parallel()

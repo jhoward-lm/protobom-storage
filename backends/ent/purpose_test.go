@@ -15,21 +15,21 @@ import (
 )
 
 type purposeSuite struct {
-	backendSuite[sbom.Purpose]
 	backend *backend.Backend[sbom.Purpose]
+	backendSuite[sbom.Purpose]
 }
 
-func (suite *purposeSuite) BeforeTest(_suiteName, _testName string) {
-	suite.backend = backend.NewBackend[sbom.Purpose]().WithDatabaseFile(suite.dbFile)
+func (ps *purposeSuite) BeforeTest(_suiteName, _testName string) {
+	ps.backend = backend.NewBackend[sbom.Purpose]().WithDatabaseFile(ps.dbFile)
 
-	if err := suite.backend.ClientSetup(); err != nil {
-		suite.T().Fatalf("%v", err)
+	if err := ps.backend.ClientSetup(); err != nil {
+		ps.T().Fatalf("%v", err)
 	}
 }
 
-func (suite *purposeSuite) TestPurposeBackend_Store() {}
+func (*purposeSuite) TestPurposeBackend_Store() {}
 
-func (suite *purposeSuite) TestPurposeBackend_Retrieve() {}
+func (*purposeSuite) TestPurposeBackend_Retrieve() {}
 
 func TestPurposeBackend(t *testing.T) {
 	t.Parallel()

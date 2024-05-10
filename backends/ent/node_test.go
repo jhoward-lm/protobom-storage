@@ -15,21 +15,21 @@ import (
 )
 
 type nodeSuite struct {
-	backendSuite[sbom.Node]
 	backend *backend.Backend[sbom.Node]
+	backendSuite[sbom.Node]
 }
 
-func (suite *nodeSuite) BeforeTest(_suiteName, _testName string) {
-	suite.backend = backend.NewBackend[sbom.Node]().WithDatabaseFile(suite.dbFile)
+func (ns *nodeSuite) BeforeTest(_suiteName, _testName string) {
+	ns.backend = backend.NewBackend[sbom.Node]().WithDatabaseFile(ns.dbFile)
 
-	if err := suite.backend.ClientSetup(); err != nil {
-		suite.T().Fatalf("%v", err)
+	if err := ns.backend.ClientSetup(); err != nil {
+		ns.T().Fatalf("%v", err)
 	}
 }
 
-func (suite *nodeSuite) TestNodeBackend_Store() {}
+func (*nodeSuite) TestNodeBackend_Store() {}
 
-func (suite *nodeSuite) TestNodeBackend_Retrieve() {}
+func (*nodeSuite) TestNodeBackend_Retrieve() {}
 
 func TestNodeBackend(t *testing.T) {
 	t.Parallel()

@@ -15,21 +15,21 @@ import (
 )
 
 type toolSuite struct {
-	backendSuite[sbom.Tool]
 	backend *backend.Backend[sbom.Tool]
+	backendSuite[sbom.Tool]
 }
 
-func (suite *toolSuite) BeforeTest(_suiteName, _testName string) {
-	suite.backend = backend.NewBackend[sbom.Tool]().WithDatabaseFile(suite.dbFile)
+func (ts *toolSuite) BeforeTest(_suiteName, _testName string) {
+	ts.backend = backend.NewBackend[sbom.Tool]().WithDatabaseFile(ts.dbFile)
 
-	if err := suite.backend.ClientSetup(); err != nil {
-		suite.T().Fatalf("%v", err)
+	if err := ts.backend.ClientSetup(); err != nil {
+		ts.T().Fatalf("%v", err)
 	}
 }
 
-func (suite *toolSuite) TestToolBackend_Store() {}
+func (*toolSuite) TestToolBackend_Store() {}
 
-func (suite *toolSuite) TestToolBackend_Retrieve() {}
+func (*toolSuite) TestToolBackend_Retrieve() {}
 
 func TestToolBackend(t *testing.T) {
 	t.Parallel()

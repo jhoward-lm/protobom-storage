@@ -15,21 +15,21 @@ import (
 )
 
 type documentSuite struct {
-	backendSuite[sbom.Document]
 	backend *backend.Backend[sbom.Document]
+	backendSuite[sbom.Document]
 }
 
-func (suite *documentSuite) BeforeTest(_suiteName, _testName string) {
-	suite.backend = backend.NewBackend[sbom.Document]().WithDatabaseFile(suite.dbFile)
+func (ds *documentSuite) BeforeTest(_suiteName, _testName string) {
+	ds.backend = backend.NewBackend[sbom.Document]().WithDatabaseFile(ds.dbFile)
 
-	if err := suite.backend.ClientSetup(); err != nil {
-		suite.T().Fatalf("%v", err)
+	if err := ds.backend.ClientSetup(); err != nil {
+		ds.T().Fatalf("%v", err)
 	}
 }
 
-func (suite *documentSuite) TestDocumentBackend_Store() {}
+func (*documentSuite) TestDocumentBackend_Store() {}
 
-func (suite *documentSuite) TestDocumentBackend_Retrieve() {}
+func (*documentSuite) TestDocumentBackend_Retrieve() {}
 
 func TestDocumentBackend(t *testing.T) {
 	t.Parallel()
