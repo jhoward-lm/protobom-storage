@@ -17,17 +17,17 @@ import (
 
 type (
 	ExternalReferenceBackend struct {
-		*Backend[sbom.ExternalReference]
+		*Backend[*sbom.ExternalReference]
 		Options ExternalReferenceBackendOptions
 	}
 
 	ExternalReferenceBackendOptions struct {
-		BackendOptions
+		BackendOptions[*sbom.ExternalReference]
 		NodeID string
 	}
 )
 
-var _ storage.Backend[sbom.ExternalReference] = (*ExternalReferenceBackend)(nil)
+var _ storage.StoreRetriever[*sbom.ExternalReference] = (*ExternalReferenceBackend)(nil)
 
 func (backend *ExternalReferenceBackend) Store(ref *sbom.ExternalReference, opts *storage.StoreOptions) error {
 	hashes := make(map[sbom.HashAlgorithm]string)
@@ -36,7 +36,7 @@ func (backend *ExternalReferenceBackend) Store(ref *sbom.ExternalReference, opts
 	}
 
 	hashesBackend := HashesBackend{}
-	if err := hashesBackend.Store(&hashes, opts); err != nil {
+	if err := hashesBackend.Store(hashes, opts); err != nil {
 		return fmt.Errorf("failed to store external reference hashes: %w", err)
 	}
 
@@ -65,8 +65,8 @@ func (backend *ExternalReferenceBackend) Retrieve(
 	return nil, nil
 }
 
-func WithNodeID(id string) Option[sbom.ExternalReference] {
-	return func(backend *Backend[sbom.ExternalReference]) {
+func WithNodeID(id string) Option[*sbom.ExternalReference] {
+	return func(backend *Backend[*sbom.ExternalReference]) {
 		refBackend := &ExternalReferenceBackend{backend, ExternalReferenceBackendOptions{NodeID: id}}
 		refBackend.WithNodeID(id)
 	}

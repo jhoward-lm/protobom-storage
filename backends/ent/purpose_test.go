@@ -15,12 +15,14 @@ import (
 )
 
 type purposeSuite struct {
-	backend *backend.Backend[sbom.Purpose]
-	backendSuite[sbom.Purpose]
+	backend *backend.PurposeBackend
+	backendSuite[*sbom.Purpose]
 }
 
 func (ps *purposeSuite) BeforeTest(_suiteName, _testName string) {
-	ps.backend = backend.NewBackend[sbom.Purpose]().WithDatabaseFile(ps.dbFile)
+	ps.backend = &backend.PurposeBackend{
+		Backend: backend.NewBackend[*sbom.Purpose]().WithDatabaseFile(ps.dbFile),
+	}
 
 	if err := ps.backend.ClientSetup(); err != nil {
 		ps.T().Fatalf("%v", err)

@@ -15,15 +15,17 @@ import (
 	"github.com/protobom/storage/internal/backends/ent/hashesentry"
 )
 
-type HashesBackend Backend[map[sbom.HashAlgorithm]string]
+type HashesBackend struct {
+	*Backend[map[sbom.HashAlgorithm]string]
+}
 
-var _ storage.Backend[map[sbom.HashAlgorithm]string] = (*HashesBackend)(nil)
+var _ storage.StoreRetriever[map[sbom.HashAlgorithm]string] = (*HashesBackend)(nil)
 
 func (backend *HashesBackend) Store(
-	hashes *map[sbom.HashAlgorithm]string, //nolint: gocritic // Ignore ptrToRefParam rule
+	hashes map[sbom.HashAlgorithm]string,
 	_opts *storage.StoreOptions,
 ) error {
-	for alg, content := range *hashes {
+	for alg, content := range hashes {
 		err := backend.client.HashesEntry.Create().
 			SetHashAlgorithmType(hashesentry.HashAlgorithmType(alg.String())).
 			SetHashData(content).
@@ -42,6 +44,6 @@ func (backend *HashesBackend) Store(
 func (backend *HashesBackend) Retrieve(
 	_id string,
 	_opts *storage.RetrieveOptions,
-) (*map[sbom.HashAlgorithm]string, error) { //nolint: gocritic // Ignore ptrToRefParam rule
+) (map[sbom.HashAlgorithm]string, error) {
 	return nil, nil
 }

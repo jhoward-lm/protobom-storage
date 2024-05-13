@@ -17,17 +17,17 @@ import (
 
 type (
 	DocumentTypeBackend struct {
-		*Backend[sbom.DocumentType]
+		*Backend[*sbom.DocumentType]
 		Options DocumentTypeBackendOptions
 	}
 
 	DocumentTypeBackendOptions struct {
-		BackendOptions
+		*BackendOptions[*sbom.DocumentType]
 		MetadataID string
 	}
 )
 
-var _ storage.Backend[sbom.DocumentType] = (*DocumentTypeBackend)(nil)
+var _ storage.StoreRetriever[*sbom.DocumentType] = (*DocumentTypeBackend)(nil)
 
 func (backend *DocumentTypeBackend) Store(docType *sbom.DocumentType, opts *storage.StoreOptions) error {
 	entOpts, ok := opts.BackendOptions.(DocumentTypeBackendOptions)

@@ -15,12 +15,14 @@ import (
 )
 
 type metadataSuite struct {
-	backend *backend.Backend[sbom.Metadata]
-	backendSuite[sbom.Metadata]
+	backend *backend.MetadataBackend
+	backendSuite[*sbom.Metadata]
 }
 
 func (ms *metadataSuite) BeforeTest(_suiteName, _testName string) {
-	ms.backend = backend.NewBackend[sbom.Metadata]().WithDatabaseFile(ms.dbFile)
+	ms.backend = &backend.MetadataBackend{
+		Backend: backend.NewBackend[*sbom.Metadata]().WithDatabaseFile(ms.dbFile),
+	}
 
 	if err := ms.backend.ClientSetup(); err != nil {
 		ms.T().Fatalf("%v", err)

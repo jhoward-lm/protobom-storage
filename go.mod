@@ -5,7 +5,7 @@ go 1.22.0
 require (
 	entgo.io/ent v0.13.1
 	github.com/glebarez/go-sqlite v1.22.0
-	github.com/protobom/protobom v0.4.0
+	github.com/protobom/protobom v0.4.1
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -30,13 +30,13 @@ require (
 	github.com/spdx/tools-golang v0.5.4 // indirect
 	github.com/zclconf/go-cty v1.8.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/protobuf v1.34.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.37.6 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.7.2 // indirect
 	modernc.org/sqlite v1.28.0 // indirect
-	sigs.k8s.io/release-utils v0.8.1 // indirect
+	sigs.k8s.io/release-utils v0.8.2 // indirect
 )

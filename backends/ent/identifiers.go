@@ -15,15 +15,17 @@ import (
 	"github.com/protobom/storage/internal/backends/ent/identifiersentry"
 )
 
-type IdentifiersBackend Backend[map[sbom.SoftwareIdentifierType]string]
+type IdentifiersBackend struct {
+	*Backend[map[sbom.SoftwareIdentifierType]string]
+}
 
-var _ storage.Backend[map[sbom.SoftwareIdentifierType]string] = (*IdentifiersBackend)(nil)
+var _ storage.StoreRetriever[map[sbom.SoftwareIdentifierType]string] = (*IdentifiersBackend)(nil)
 
 func (backend *IdentifiersBackend) Store(
-	idents *map[sbom.SoftwareIdentifierType]string, //nolint: gocritic // Ignore ptrToRefParam rule
+	idents map[sbom.SoftwareIdentifierType]string,
 	_opts *storage.StoreOptions,
 ) error {
-	for typ, value := range *idents {
+	for typ, value := range idents {
 		err := backend.client.IdentifiersEntry.Create().
 			SetSoftwareIdentifierType(identifiersentry.SoftwareIdentifierType(typ.String())).
 			SetSoftwareIdentifierValue(value).
@@ -42,6 +44,6 @@ func (backend *IdentifiersBackend) Store(
 func (backend *IdentifiersBackend) Retrieve(
 	_id string,
 	_opts *storage.RetrieveOptions,
-) (*map[sbom.SoftwareIdentifierType]string, error) { //nolint: gocritic // Ignore ptrToRefParam rule
+) (map[sbom.SoftwareIdentifierType]string, error) {
 	return nil, nil
 }

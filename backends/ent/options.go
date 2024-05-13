@@ -22,15 +22,16 @@ import (
 const dsnParams string = "?_pragma=foreign_keys(1)"
 
 type (
-	// Backend implements the protobom model.v1.storage.Backend interface.
+	// Backend implements the protobom Backend interface.
 	Backend[T storage.ProtobomType] struct {
+		storage.Storer[T]
 		client  *ent.Client
 		ctx     context.Context
-		Options BackendOptions
+		Options BackendOptions[T]
 	}
 
 	// BackendOptions contains options specific to the protobom ent backend.
-	BackendOptions struct {
+	BackendOptions[T storage.ProtobomType] struct {
 		DatabaseFile string
 	}
 
@@ -52,8 +53,8 @@ func NewBackend[T storage.ProtobomType](opts ...Option[T]) *Backend[T] {
 	return backend
 }
 
-func NewBackendOptions[T storage.ProtobomType]() BackendOptions {
-	return BackendOptions{
+func NewBackendOptions[T storage.ProtobomType]() BackendOptions[T] {
+	return BackendOptions[T]{
 		DatabaseFile: ":memory:",
 	}
 }

@@ -15,12 +15,14 @@ import (
 )
 
 type nodeListSuite struct {
-	backend *backend.Backend[sbom.NodeList]
-	backendSuite[sbom.NodeList]
+	backend *backend.NodeListBackend
+	backendSuite[*sbom.NodeList]
 }
 
 func (nls *nodeListSuite) BeforeTest(_suiteName, _testName string) {
-	nls.backend = backend.NewBackend[sbom.NodeList]().WithDatabaseFile(nls.dbFile)
+	nls.backend = &backend.NodeListBackend{
+		Backend: backend.NewBackend[*sbom.NodeList]().WithDatabaseFile(nls.dbFile),
+	}
 
 	if err := nls.backend.ClientSetup(); err != nil {
 		nls.T().Fatalf("%v", err)

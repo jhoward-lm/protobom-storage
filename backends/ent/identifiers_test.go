@@ -15,12 +15,14 @@ import (
 )
 
 type identifiersSuite struct {
-	backend *backend.Backend[map[sbom.SoftwareIdentifierType]string]
+	backend *backend.IdentifiersBackend
 	backendSuite[map[sbom.SoftwareIdentifierType]string]
 }
 
 func (is *identifiersSuite) BeforeTest(_suiteName, _testName string) {
-	is.backend = backend.NewBackend[map[sbom.SoftwareIdentifierType]string]().WithDatabaseFile(is.dbFile)
+	is.backend = &backend.IdentifiersBackend{
+		Backend: backend.NewBackend[map[sbom.SoftwareIdentifierType]string]().WithDatabaseFile(is.dbFile),
+	}
 
 	if err := is.backend.ClientSetup(); err != nil {
 		is.T().Fatalf("%v", err)

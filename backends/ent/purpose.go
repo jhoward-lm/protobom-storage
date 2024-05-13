@@ -15,9 +15,11 @@ import (
 	"github.com/protobom/storage/internal/backends/ent/purpose"
 )
 
-type PurposeBackend Backend[sbom.Purpose]
+type PurposeBackend struct {
+	*Backend[*sbom.Purpose]
+}
 
-var _ storage.Backend[sbom.Purpose] = (*PurposeBackend)(nil)
+var _ storage.StoreRetriever[*sbom.Purpose] = (*PurposeBackend)(nil)
 
 func (backend *PurposeBackend) Store(p *sbom.Purpose, _opts *storage.StoreOptions) error {
 	err := backend.client.Purpose.Create().

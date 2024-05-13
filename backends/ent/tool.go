@@ -16,17 +16,17 @@ import (
 
 type (
 	ToolBackend struct {
-		*Backend[sbom.Tool]
+		*Backend[*sbom.Tool]
 		Options ToolBackendOptions
 	}
 
 	ToolBackendOptions struct {
-		BackendOptions
+		*BackendOptions[*sbom.Tool]
 		MetadataID string
 	}
 )
 
-var _ storage.Backend[sbom.Tool] = (*ToolBackend)(nil)
+var _ storage.StoreRetriever[*sbom.Tool] = (*ToolBackend)(nil)
 
 func (backend *ToolBackend) Store(tool *sbom.Tool, opts *storage.StoreOptions) error {
 	entOpts, ok := opts.BackendOptions.(ToolBackendOptions)

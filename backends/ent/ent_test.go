@@ -15,13 +15,11 @@ import (
 	"github.com/protobom/protobom/pkg/storage"
 	"github.com/stretchr/testify/suite"
 
-	backend "github.com/protobom/storage/backends/ent"
 	"github.com/protobom/storage/internal/backends/ent"
 )
 
 type backendSuite[T storage.ProtobomType] struct {
 	suite.Suite
-	backend   backend.Backend[T]
 	dbFile    string
 	ctx       context.Context
 	client    *ent.Client

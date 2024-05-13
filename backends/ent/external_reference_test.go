@@ -15,12 +15,14 @@ import (
 )
 
 type externalReferenceSuite struct {
-	backend *backend.Backend[sbom.ExternalReference]
-	backendSuite[sbom.ExternalReference]
+	backend *backend.ExternalReferenceBackend
+	backendSuite[*sbom.ExternalReference]
 }
 
 func (ers *externalReferenceSuite) BeforeTest(_suiteName, _testName string) {
-	ers.backend = backend.NewBackend[sbom.ExternalReference]().WithDatabaseFile(ers.dbFile)
+	ers.backend = &backend.ExternalReferenceBackend{
+		Backend: backend.NewBackend[*sbom.ExternalReference]().WithDatabaseFile(ers.dbFile),
+	}
 
 	if err := ers.backend.ClientSetup(); err != nil {
 		ers.T().Fatalf("%v", err)

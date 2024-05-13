@@ -15,12 +15,14 @@ import (
 )
 
 type documentTypeSuite struct {
-	backend *backend.Backend[sbom.DocumentType]
-	backendSuite[sbom.DocumentType]
+	backend *backend.DocumentTypeBackend
+	backendSuite[*sbom.DocumentType]
 }
 
 func (dts *documentTypeSuite) BeforeTest(_suiteName, _testName string) {
-	dts.backend = backend.NewBackend[sbom.DocumentType]().WithDatabaseFile(dts.dbFile)
+	dts.backend = &backend.DocumentTypeBackend{
+		Backend: backend.NewBackend[*sbom.DocumentType]().WithDatabaseFile(dts.dbFile),
+	}
 
 	if err := dts.backend.ClientSetup(); err != nil {
 		dts.T().Fatalf("%v", err)

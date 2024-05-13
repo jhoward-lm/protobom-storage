@@ -17,17 +17,17 @@ import (
 
 type (
 	NodeBackend struct {
-		*Backend[sbom.Node]
+		*Backend[*sbom.Node]
 		Options NodeBackendOptions
 	}
 
 	NodeBackendOptions struct {
-		BackendOptions
+		*BackendOptions[*sbom.Node]
 		NodeListID int
 	}
 )
 
-var _ storage.Backend[sbom.Node] = (*NodeBackend)(nil)
+var _ storage.StoreRetriever[*sbom.Node] = (*NodeBackend)(nil)
 
 func (backend *NodeBackend) Store(n *sbom.Node, _opts *storage.StoreOptions) error {
 	err := backend.client.Node.Create().
@@ -75,8 +75,8 @@ func (backend *NodeBackend) Retrieve(_id string, _opts *storage.RetrieveOptions)
 	return nil, nil
 }
 
-func WithNodeListID(id int) Option[sbom.Node] {
-	return func(backend *Backend[sbom.Node]) {
+func WithNodeListID(id int) Option[*sbom.Node] {
+	return func(backend *Backend[*sbom.Node]) {
 		nodeBackend := &NodeBackend{backend, NodeBackendOptions{NodeListID: id}}
 		nodeBackend.WithNodeListID(id)
 	}

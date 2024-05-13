@@ -15,12 +15,14 @@ import (
 )
 
 type documentSuite struct {
-	backend *backend.Backend[sbom.Document]
-	backendSuite[sbom.Document]
+	backend *backend.DocumentBackend
+	backendSuite[*sbom.Document]
 }
 
 func (ds *documentSuite) BeforeTest(_suiteName, _testName string) {
-	ds.backend = backend.NewBackend[sbom.Document]().WithDatabaseFile(ds.dbFile)
+	ds.backend = &backend.DocumentBackend{
+		Backend: backend.NewBackend[*sbom.Document]().WithDatabaseFile(ds.dbFile),
+	}
 
 	if err := ds.backend.ClientSetup(); err != nil {
 		ds.T().Fatalf("%v", err)

@@ -14,19 +14,33 @@ import (
 	"github.com/protobom/storage/internal/backends/ent"
 )
 
-type NodeListBackend Backend[sbom.NodeList]
+type NodeListBackend struct {
+	*Backend[*sbom.NodeList]
+}
 
-var _ storage.Backend[sbom.NodeList] = (*NodeListBackend)(nil)
+var _ storage.StoreRetriever[*sbom.NodeList] = (*NodeListBackend)(nil)
 
 func (backend *NodeListBackend) Store(nodeList *sbom.NodeList, _opts *storage.StoreOptions) error {
-	err := backend.client.NodeList.Create().
+	id, err := backend.client.NodeList.Create().
 		SetRootElements(nodeList.RootElements).
 		OnConflict().
 		Ignore().
-		Exec(backend.ctx)
+		ID(backend.ctx)
 
 	if err != nil && !ent.IsConstraintError(err) {
 		return fmt.Errorf("failed creating ent.NodeList: %w", err)
+	}
+
+	nodeOpts := &storage.StoreOptions{
+		BackendOptions: NodeBackendOptions{NodeListID: id},
+	}
+
+	nodeBackend := &NodeBackend{NewBackend[*sbom.Node](), NodeBackendOptions{NodeListID: id}}
+
+	for _, n := range nodeList.Nodes {
+		if err := nodeBackend.Store(n, nodeOpts); err != nil {
+			return fmt.Errorf("failed creating ent.Nodes: %w", err)
+		}
 	}
 
 	return nil

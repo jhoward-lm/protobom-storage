@@ -16,17 +16,17 @@ import (
 
 type (
 	PersonBackend struct {
-		*Backend[sbom.Person]
+		*Backend[*sbom.Person]
 		Options PersonBackendOptions
 	}
 
 	PersonBackendOptions struct {
-		BackendOptions
+		*BackendOptions[*sbom.Person]
 		MetadataID string
 	}
 )
 
-var _ storage.Backend[sbom.Person] = (*PersonBackend)(nil)
+var _ storage.StoreRetriever[*sbom.Person] = (*PersonBackend)(nil)
 
 func (backend *PersonBackend) Store(person *sbom.Person, opts *storage.StoreOptions) error {
 	for i := range person.Contacts {

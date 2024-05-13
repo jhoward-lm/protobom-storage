@@ -15,12 +15,14 @@ import (
 )
 
 type hashesSuite struct {
-	backend *backend.Backend[map[sbom.HashAlgorithm]string]
+	backend *backend.HashesBackend
 	backendSuite[map[sbom.HashAlgorithm]string]
 }
 
 func (hs *hashesSuite) BeforeTest(_suiteName, _testName string) {
-	hs.backend = backend.NewBackend[map[sbom.HashAlgorithm]string]().WithDatabaseFile(hs.dbFile)
+	hs.backend = &backend.HashesBackend{
+		Backend: backend.NewBackend[map[sbom.HashAlgorithm]string]().WithDatabaseFile(hs.dbFile),
+	}
 
 	if err := hs.backend.ClientSetup(); err != nil {
 		hs.T().Fatalf("%v", err)
