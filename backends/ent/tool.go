@@ -29,6 +29,9 @@ type (
 var _ storage.StoreRetriever[*sbom.Tool] = (*ToolBackend)(nil)
 
 func (backend *ToolBackend) Store(tool *sbom.Tool, opts *storage.StoreOptions) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating Tool, Setup Client required")
+	}
 	entOpts, ok := opts.BackendOptions.(ToolBackendOptions)
 	if !ok || entOpts.MetadataID == "" {
 		return fmt.Errorf("%w: %v", errInvalidEntOptions, opts.BackendOptions)

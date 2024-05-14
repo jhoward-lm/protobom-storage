@@ -30,6 +30,9 @@ type (
 var _ storage.StoreRetriever[*sbom.ExternalReference] = (*ExternalReferenceBackend)(nil)
 
 func (backend *ExternalReferenceBackend) Store(ref *sbom.ExternalReference, opts *storage.StoreOptions) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating ExternalReference, Setup Client required")
+	}
 	hashes := make(map[sbom.HashAlgorithm]string)
 	for alg, content := range ref.Hashes {
 		hashes[sbom.HashAlgorithm(alg)] = content
@@ -39,7 +42,6 @@ func (backend *ExternalReferenceBackend) Store(ref *sbom.ExternalReference, opts
 	if err := hashesBackend.Store(hashes, opts); err != nil {
 		return fmt.Errorf("failed to store external reference hashes: %w", err)
 	}
-
 	err := backend.client.ExternalReference.Create().
 		// SetNodeID(nodeID).
 		SetAuthority(ref.Authority).

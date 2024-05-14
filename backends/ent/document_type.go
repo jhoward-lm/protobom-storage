@@ -30,6 +30,9 @@ type (
 var _ storage.StoreRetriever[*sbom.DocumentType] = (*DocumentTypeBackend)(nil)
 
 func (backend *DocumentTypeBackend) Store(docType *sbom.DocumentType, opts *storage.StoreOptions) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating DocumentType, Setup Client required")
+	}
 	entOpts, ok := opts.BackendOptions.(DocumentTypeBackendOptions)
 	if !ok || entOpts.MetadataID == "" {
 		return fmt.Errorf("%w: %v", errInvalidEntOptions, opts.BackendOptions)

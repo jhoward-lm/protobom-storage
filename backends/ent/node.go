@@ -29,7 +29,14 @@ type (
 
 var _ storage.StoreRetriever[*sbom.Node] = (*NodeBackend)(nil)
 
+func (backend *NodeBackend) SetClient(client *ent.Client) {
+	backend.client = client
+}
+
 func (backend *NodeBackend) Store(n *sbom.Node, _opts *storage.StoreOptions) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating NodeList, Setup Client required")
+	}
 	err := backend.client.Node.Create().
 		SetID(n.Id).
 		SetAttribution(n.Attribution).

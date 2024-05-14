@@ -21,6 +21,9 @@ type NodeListBackend struct {
 var _ storage.StoreRetriever[*sbom.NodeList] = (*NodeListBackend)(nil)
 
 func (backend *NodeListBackend) Store(nodeList *sbom.NodeList, _opts *storage.StoreOptions) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating NodeList, Setup Client required")
+	}
 	id, err := backend.client.NodeList.Create().
 		SetRootElements(nodeList.RootElements).
 		OnConflict().

@@ -21,6 +21,9 @@ type MetadataBackend struct {
 var _ storage.StoreRetriever[*sbom.Metadata] = (*MetadataBackend)(nil)
 
 func (backend *MetadataBackend) Store(md *sbom.Metadata, opts *storage.StoreOptions) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating Metadata, Setup Client required")
+	}
 	id, err := backend.client.Metadata.Create().
 		SetID(md.Id).
 		SetVersion(md.Version).

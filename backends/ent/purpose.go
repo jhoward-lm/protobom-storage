@@ -22,6 +22,9 @@ type PurposeBackend struct {
 var _ storage.StoreRetriever[*sbom.Purpose] = (*PurposeBackend)(nil)
 
 func (backend *PurposeBackend) Store(p *sbom.Purpose, _opts *storage.StoreOptions) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating Purpose, Setup Client required")
+	}
 	err := backend.client.Purpose.Create().
 		SetPrimaryPurpose(purpose.PrimaryPurpose(p.String())).
 		OnConflict().

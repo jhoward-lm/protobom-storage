@@ -29,6 +29,9 @@ type (
 var _ storage.StoreRetriever[*sbom.Person] = (*PersonBackend)(nil)
 
 func (backend *PersonBackend) Store(person *sbom.Person, opts *storage.StoreOptions) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating Person, Setup Client required")
+	}
 	for i := range person.Contacts {
 		if err := backend.Store(person.Contacts[i], opts); err != nil {
 			return fmt.Errorf("failed to store person contact: %w", err)

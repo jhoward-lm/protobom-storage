@@ -25,6 +25,9 @@ func (backend *HashesBackend) Store(
 	hashes map[sbom.HashAlgorithm]string,
 	_opts *storage.StoreOptions,
 ) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating HashesEntry, Setup Client required")
+	}
 	for alg, content := range hashes {
 		err := backend.client.HashesEntry.Create().
 			SetHashAlgorithmType(hashesentry.HashAlgorithmType(alg.String())).

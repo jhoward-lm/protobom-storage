@@ -25,6 +25,9 @@ func (backend *IdentifiersBackend) Store(
 	idents map[sbom.SoftwareIdentifierType]string,
 	_opts *storage.StoreOptions,
 ) error {
+	if backend.client == nil {
+		return fmt.Errorf("failed creating IdentifiersEntry, Setup Client required")
+	}
 	for typ, value := range idents {
 		err := backend.client.IdentifiersEntry.Create().
 			SetSoftwareIdentifierType(identifiersentry.SoftwareIdentifierType(typ.String())).
