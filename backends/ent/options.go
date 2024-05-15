@@ -22,11 +22,17 @@ import (
 const dsnParams string = "?_pragma=foreign_keys(1)"
 
 type (
-	// Backend implements the protobom Backend interface.
+	config struct {
+		client *ent.Client
+		ctx    context.Context
+		debug  bool
+	}
+
+	// Backend implements the protobom.pkg.storage.Backend interface.
 	Backend[T storage.ProtobomType] struct {
+		config
 		storage.Storer[T]
-		client  *ent.Client
-		ctx     context.Context
+		storage.Retriever[T]
 		Options BackendOptions[T]
 	}
 
@@ -50,6 +56,10 @@ func NewBackend[T storage.ProtobomType](opts ...Option[T]) *Backend[T] {
 		opt(backend)
 	}
 
+	if err := backend.ClientSetup(); err != nil {
+		panic(err)
+	}
+
 	return backend
 }
 
@@ -71,13 +81,31 @@ func (backend *Backend[any]) WithDatabaseFile(file string) *Backend[any] {
 	return backend
 }
 
+func Debug[T storage.ProtobomType]() Option[T] {
+	return func(backend *Backend[T]) {
+		backend.Debug()
+	}
+}
+
+func (backend *Backend[any]) Debug() *Backend[any] {
+	backend.debug = true
+	backend.client = backend.client.Debug()
+
+	return backend
+}
+
 func (backend *Backend[any]) ClientSetup() error {
 	// Register the SQLite driver as "sqlite3".
 	if !slices.Contains(sql.Drivers(), "sqlite3") {
 		sqlite.RegisterAsSQLITE3()
 	}
 
-	client, err := ent.Open("sqlite3", fmt.Sprintf("%s%s", backend.Options.DatabaseFile, dsnParams))
+	clientOpts := []ent.Option{}
+	if backend.debug {
+		clientOpts = append(clientOpts, ent.Debug())
+	}
+
+	client, err := ent.Open("sqlite3", fmt.Sprintf("%s%s", backend.Options.DatabaseFile, dsnParams), clientOpts...)
 	if err != nil {
 		return fmt.Errorf("failed opening connection to sqlite: %w", err)
 	}

@@ -57,12 +57,12 @@ const (
 	// DocumentTypesColumn is the table column denoting the document_types relation/edge.
 	DocumentTypesColumn = "metadata_document_types"
 	// DocumentTable is the table that holds the document relation/edge.
-	DocumentTable = "documents"
+	DocumentTable = "metadata"
 	// DocumentInverseTable is the table name for the Document entity.
 	// It exists in this package in order to avoid circular dependency with the "document" package.
 	DocumentInverseTable = "documents"
 	// DocumentColumn is the table column denoting the document relation/edge.
-	DocumentColumn = "metadata_document"
+	DocumentColumn = "id"
 )
 
 // Columns holds all SQL columns for metadata fields.
@@ -190,6 +190,6 @@ func newDocumentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DocumentInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, DocumentTable, DocumentColumn),
+		sqlgraph.Edge(sqlgraph.O2O, true, DocumentTable, DocumentColumn),
 	)
 }

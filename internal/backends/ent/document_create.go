@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -25,6 +26,12 @@ type DocumentCreate struct {
 	mutation *DocumentMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetID sets the "id" field.
+func (dc *DocumentCreate) SetID(s string) *DocumentCreate {
+	dc.mutation.SetID(s)
+	return dc
 }
 
 // SetMetadataID sets the "metadata" edge to the Metadata entity by ID.
@@ -83,6 +90,11 @@ func (dc *DocumentCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (dc *DocumentCreate) check() error {
+	if v, ok := dc.mutation.ID(); ok {
+		if err := document.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Document.id": %w`, err)}
+		}
+	}
 	if _, ok := dc.mutation.MetadataID(); !ok {
 		return &ValidationError{Name: "metadata", err: errors.New(`ent: missing required edge "Document.metadata"`)}
 	}
@@ -103,8 +115,13 @@ func (dc *DocumentCreate) sqlSave(ctx context.Context) (*Document, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Document.ID type: %T", _spec.ID.Value)
+		}
+	}
 	dc.mutation.id = &_node.ID
 	dc.mutation.done = true
 	return _node, nil
@@ -113,13 +130,17 @@ func (dc *DocumentCreate) sqlSave(ctx context.Context) (*Document, error) {
 func (dc *DocumentCreate) createSpec() (*Document, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Document{config: dc.config}
-		_spec = sqlgraph.NewCreateSpec(document.Table, sqlgraph.NewFieldSpec(document.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(document.Table, sqlgraph.NewFieldSpec(document.FieldID, field.TypeString))
 	)
 	_spec.OnConflict = dc.conflict
+	if id, ok := dc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if nodes := dc.mutation.MetadataIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   document.MetadataTable,
 			Columns: []string{document.MetadataColumn},
 			Bidi:    false,
@@ -130,7 +151,6 @@ func (dc *DocumentCreate) createSpec() (*Document, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.metadata_document = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := dc.mutation.NodeListIDs(); len(nodes) > 0 {
@@ -196,16 +216,24 @@ type (
 	}
 )
 
-// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
 //	client.Document.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(document.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *DocumentUpsertOne) UpdateNewValues() *DocumentUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(document.FieldID)
+		}
+	}))
 	return u
 }
 
@@ -252,7 +280,12 @@ func (u *DocumentUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *DocumentUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *DocumentUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: DocumentUpsertOne.ID is not supported by MySQL driver. Use DocumentUpsertOne.Exec instead")
+	}
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -261,7 +294,7 @@ func (u *DocumentUpsertOne) ID(ctx context.Context) (id int, err error) {
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *DocumentUpsertOne) IDX(ctx context.Context) int {
+func (u *DocumentUpsertOne) IDX(ctx context.Context) string {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -315,10 +348,6 @@ func (dcb *DocumentCreateBulk) Save(ctx context.Context) ([]*Document, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -400,10 +429,20 @@ type DocumentUpsertBulk struct {
 //	client.Document.Create().
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(document.FieldID)
+//			}),
 //		).
 //		Exec(ctx)
 func (u *DocumentUpsertBulk) UpdateNewValues() *DocumentUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(document.FieldID)
+			}
+		}
+	}))
 	return u
 }
 

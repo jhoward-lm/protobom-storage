@@ -15,7 +15,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/protobom/storage/internal/backends/ent/document"
-	"github.com/protobom/storage/internal/backends/ent/metadata"
 	"github.com/protobom/storage/internal/backends/ent/nodelist"
 	"github.com/protobom/storage/internal/backends/ent/predicate"
 )
@@ -33,17 +32,6 @@ func (du *DocumentUpdate) Where(ps ...predicate.Document) *DocumentUpdate {
 	return du
 }
 
-// SetMetadataID sets the "metadata" edge to the Metadata entity by ID.
-func (du *DocumentUpdate) SetMetadataID(id string) *DocumentUpdate {
-	du.mutation.SetMetadataID(id)
-	return du
-}
-
-// SetMetadata sets the "metadata" edge to the Metadata entity.
-func (du *DocumentUpdate) SetMetadata(m *Metadata) *DocumentUpdate {
-	return du.SetMetadataID(m.ID)
-}
-
 // SetNodeListID sets the "node_list" edge to the NodeList entity by ID.
 func (du *DocumentUpdate) SetNodeListID(id int) *DocumentUpdate {
 	du.mutation.SetNodeListID(id)
@@ -58,12 +46,6 @@ func (du *DocumentUpdate) SetNodeList(n *NodeList) *DocumentUpdate {
 // Mutation returns the DocumentMutation object of the builder.
 func (du *DocumentUpdate) Mutation() *DocumentMutation {
 	return du.mutation
-}
-
-// ClearMetadata clears the "metadata" edge to the Metadata entity.
-func (du *DocumentUpdate) ClearMetadata() *DocumentUpdate {
-	du.mutation.ClearMetadata()
-	return du
 }
 
 // ClearNodeList clears the "node_list" edge to the NodeList entity.
@@ -114,42 +96,13 @@ func (du *DocumentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := du.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(document.Table, document.Columns, sqlgraph.NewFieldSpec(document.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(document.Table, document.Columns, sqlgraph.NewFieldSpec(document.FieldID, field.TypeString))
 	if ps := du.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
-	}
-	if du.mutation.MetadataCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: true,
-			Table:   document.MetadataTable,
-			Columns: []string{document.MetadataColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(metadata.FieldID, field.TypeString),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := du.mutation.MetadataIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: true,
-			Table:   document.MetadataTable,
-			Columns: []string{document.MetadataColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(metadata.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if du.mutation.NodeListCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -200,17 +153,6 @@ type DocumentUpdateOne struct {
 	mutation *DocumentMutation
 }
 
-// SetMetadataID sets the "metadata" edge to the Metadata entity by ID.
-func (duo *DocumentUpdateOne) SetMetadataID(id string) *DocumentUpdateOne {
-	duo.mutation.SetMetadataID(id)
-	return duo
-}
-
-// SetMetadata sets the "metadata" edge to the Metadata entity.
-func (duo *DocumentUpdateOne) SetMetadata(m *Metadata) *DocumentUpdateOne {
-	return duo.SetMetadataID(m.ID)
-}
-
 // SetNodeListID sets the "node_list" edge to the NodeList entity by ID.
 func (duo *DocumentUpdateOne) SetNodeListID(id int) *DocumentUpdateOne {
 	duo.mutation.SetNodeListID(id)
@@ -225,12 +167,6 @@ func (duo *DocumentUpdateOne) SetNodeList(n *NodeList) *DocumentUpdateOne {
 // Mutation returns the DocumentMutation object of the builder.
 func (duo *DocumentUpdateOne) Mutation() *DocumentMutation {
 	return duo.mutation
-}
-
-// ClearMetadata clears the "metadata" edge to the Metadata entity.
-func (duo *DocumentUpdateOne) ClearMetadata() *DocumentUpdateOne {
-	duo.mutation.ClearMetadata()
-	return duo
 }
 
 // ClearNodeList clears the "node_list" edge to the NodeList entity.
@@ -294,7 +230,7 @@ func (duo *DocumentUpdateOne) sqlSave(ctx context.Context) (_node *Document, err
 	if err := duo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(document.Table, document.Columns, sqlgraph.NewFieldSpec(document.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(document.Table, document.Columns, sqlgraph.NewFieldSpec(document.FieldID, field.TypeString))
 	id, ok := duo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Document.id" for update`)}
@@ -318,35 +254,6 @@ func (duo *DocumentUpdateOne) sqlSave(ctx context.Context) (_node *Document, err
 				ps[i](selector)
 			}
 		}
-	}
-	if duo.mutation.MetadataCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: true,
-			Table:   document.MetadataTable,
-			Columns: []string{document.MetadataColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(metadata.FieldID, field.TypeString),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := duo.mutation.MetadataIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: true,
-			Table:   document.MetadataTable,
-			Columns: []string{document.MetadataColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(metadata.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if duo.mutation.NodeListCleared() {
 		edge := &sqlgraph.EdgeSpec{

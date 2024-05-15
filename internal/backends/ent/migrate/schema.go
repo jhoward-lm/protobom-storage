@@ -15,8 +15,7 @@ import (
 var (
 	// DocumentsColumns holds the columns for the "documents" table.
 	DocumentsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "metadata_document", Type: field.TypeString, Unique: true},
+		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "node_list_document", Type: field.TypeInt, Unique: true},
 	}
 	// DocumentsTable holds the schema information for the "documents" table.
@@ -26,23 +25,17 @@ var (
 		PrimaryKey: []*schema.Column{DocumentsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "documents_metadata_document",
-				Columns:    []*schema.Column{DocumentsColumns[1]},
-				RefColumns: []*schema.Column{MetadataColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
 				Symbol:     "documents_node_lists_document",
-				Columns:    []*schema.Column{DocumentsColumns[2]},
+				Columns:    []*schema.Column{DocumentsColumns[1]},
 				RefColumns: []*schema.Column{NodeListsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "document_metadata_document_node_list_document",
+				Name:    "document_id_node_list_document",
 				Unique:  true,
-				Columns: []*schema.Column{DocumentsColumns[1], DocumentsColumns[2]},
+				Columns: []*schema.Column{DocumentsColumns[0], DocumentsColumns[1]},
 			},
 		},
 	}
@@ -114,7 +107,7 @@ var (
 		{Name: "comment", Type: field.TypeString},
 		{Name: "authority", Type: field.TypeString, Nullable: true},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"UNKNOWN", "ATTESTATION", "BINARY", "BOM", "BOWER", "BUILD_META", "BUILD_SYSTEM", "CERTIFICATION_REPORT", "CHAT", "CODIFIED_INFRASTRUCTURE", "COMPONENT_ANALYSIS_REPORT", "CONFIGURATION", "DISTRIBUTION_INTAKE", "DOCUMENTATION", "DOWNLOAD", "DYNAMIC_ANALYSIS_REPORT", "EOL_NOTICE", "EVIDENCE", "EXPORT_CONTROL_ASSESSMENT", "FORMULATION", "FUNDING", "ISSUE_TRACKER", "LICENSE", "LOG", "MAILING_LIST", "MATURITY_REPORT", "MAVEN_CENTRAL", "METRICS", "MODEL_CARD", "NPM", "NUGET", "OTHER", "POAM", "PRIVACY_ASSESSMENT", "PRODUCT_METADATA", "PURCHASE_ORDER", "QUALITY_ASSESSMENT_REPORT", "QUALITY_METRICS", "RELEASE_HISTORY", "RELEASE_NOTES", "RISK_ASSESSMENT", "RUNTIME_ANALYSIS_REPORT", "SECURE_SOFTWARE_ATTESTATION", "SECURITY_ADVERSARY_MODEL", "SECURITY_ADVISORY", "SECURITY_CONTACT", "SECURITY_FIX", "SECURITY_OTHER", "SECURITY_PENTEST_REPORT", "SECURITY_POLICY", "SECURITY_SWID", "SECURITY_THREAT_MODEL", "SOCIAL", "SOURCE_ARTIFACT", "STATIC_ANALYSIS_REPORT", "SUPPORT", "VCS", "VULNERABILITY_ASSERTION", "VULNERABILITY_DISCLOSURE_REPORT", "VULNERABILITY_EXPLOITABILITY_ASSESSMENT", "WEBSITE"}},
-		{Name: "node_external_references", Type: field.TypeString},
+		{Name: "node_external_references", Type: field.TypeString, Nullable: true},
 	}
 	// ExternalReferencesTable holds the schema information for the "external_references" table.
 	ExternalReferencesTable = &schema.Table{
@@ -126,7 +119,7 @@ var (
 				Symbol:     "external_references_nodes_external_references",
 				Columns:    []*schema.Column{ExternalReferencesColumns[5]},
 				RefColumns: []*schema.Column{NodesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -206,6 +199,14 @@ var (
 		Name:       "metadata",
 		Columns:    MetadataColumns,
 		PrimaryKey: []*schema.Column{MetadataColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "metadata_documents_metadata",
+				Columns:    []*schema.Column{MetadataColumns[0]},
+				RefColumns: []*schema.Column{DocumentsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "metadata_id_version_name",
@@ -392,8 +393,7 @@ var (
 )
 
 func init() {
-	DocumentsTable.ForeignKeys[0].RefTable = MetadataTable
-	DocumentsTable.ForeignKeys[1].RefTable = NodeListsTable
+	DocumentsTable.ForeignKeys[0].RefTable = NodeListsTable
 	DocumentTypesTable.ForeignKeys[0].RefTable = MetadataTable
 	EdgeTypesTable.ForeignKeys[0].RefTable = NodesTable
 	EdgeTypesTable.ForeignKeys[1].RefTable = NodesTable
@@ -401,6 +401,7 @@ func init() {
 	HashesEntriesTable.ForeignKeys[0].RefTable = ExternalReferencesTable
 	HashesEntriesTable.ForeignKeys[1].RefTable = NodesTable
 	IdentifiersEntriesTable.ForeignKeys[0].RefTable = NodesTable
+	MetadataTable.ForeignKeys[0].RefTable = DocumentsTable
 	NodesTable.ForeignKeys[0].RefTable = NodeListsTable
 	PersonsTable.ForeignKeys[0].RefTable = MetadataTable
 	PersonsTable.ForeignKeys[1].RefTable = NodesTable

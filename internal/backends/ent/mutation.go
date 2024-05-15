@@ -58,7 +58,7 @@ type DocumentMutation struct {
 	config
 	op               Op
 	typ              string
-	id               *int
+	id               *string
 	clearedFields    map[string]struct{}
 	metadata         *string
 	clearedmetadata  bool
@@ -89,7 +89,7 @@ func newDocumentMutation(c config, op Op, opts ...documentOption) *DocumentMutat
 }
 
 // withDocumentID sets the ID field of the mutation.
-func withDocumentID(id int) documentOption {
+func withDocumentID(id string) documentOption {
 	return func(m *DocumentMutation) {
 		var (
 			err   error
@@ -139,9 +139,15 @@ func (m DocumentMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Document entities.
+func (m *DocumentMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *DocumentMutation) ID() (id int, exists bool) {
+func (m *DocumentMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -152,12 +158,12 @@ func (m *DocumentMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *DocumentMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *DocumentMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -3186,7 +3192,7 @@ type MetadataMutation struct {
 	document_types        map[int]struct{}
 	removeddocument_types map[int]struct{}
 	cleareddocument_types bool
-	document              *int
+	document              *string
 	cleareddocument       bool
 	done                  bool
 	oldValue              func(context.Context) (*Metadata, error)
@@ -3604,7 +3610,7 @@ func (m *MetadataMutation) ResetDocumentTypes() {
 }
 
 // SetDocumentID sets the "document" edge to the Document entity by id.
-func (m *MetadataMutation) SetDocumentID(id int) {
+func (m *MetadataMutation) SetDocumentID(id string) {
 	m.document = &id
 }
 
@@ -3619,7 +3625,7 @@ func (m *MetadataMutation) DocumentCleared() bool {
 }
 
 // DocumentID returns the "document" edge ID in the mutation.
-func (m *MetadataMutation) DocumentID() (id int, exists bool) {
+func (m *MetadataMutation) DocumentID() (id string, exists bool) {
 	if m.document != nil {
 		return *m.document, true
 	}
@@ -3629,7 +3635,7 @@ func (m *MetadataMutation) DocumentID() (id int, exists bool) {
 // DocumentIDs returns the "document" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // DocumentID instead. It exists only for internal usage by the builders.
-func (m *MetadataMutation) DocumentIDs() (ids []int) {
+func (m *MetadataMutation) DocumentIDs() (ids []string) {
 	if id := m.document; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6075,7 +6081,7 @@ type NodeListMutation struct {
 	nodes               map[string]struct{}
 	removednodes        map[string]struct{}
 	clearednodes        bool
-	document            *int
+	document            *string
 	cleareddocument     bool
 	done                bool
 	oldValue            func(context.Context) (*NodeList, error)
@@ -6286,7 +6292,7 @@ func (m *NodeListMutation) ResetNodes() {
 }
 
 // SetDocumentID sets the "document" edge to the Document entity by id.
-func (m *NodeListMutation) SetDocumentID(id int) {
+func (m *NodeListMutation) SetDocumentID(id string) {
 	m.document = &id
 }
 
@@ -6301,7 +6307,7 @@ func (m *NodeListMutation) DocumentCleared() bool {
 }
 
 // DocumentID returns the "document" edge ID in the mutation.
-func (m *NodeListMutation) DocumentID() (id int, exists bool) {
+func (m *NodeListMutation) DocumentID() (id string, exists bool) {
 	if m.document != nil {
 		return *m.document, true
 	}
@@ -6311,7 +6317,7 @@ func (m *NodeListMutation) DocumentID() (id int, exists bool) {
 // DocumentIDs returns the "document" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // DocumentID instead. It exists only for internal usage by the builders.
-func (m *NodeListMutation) DocumentIDs() (ids []int) {
+func (m *NodeListMutation) DocumentIDs() (ids []string) {
 	if id := m.document; id != nil {
 		ids = append(ids, *id)
 	}

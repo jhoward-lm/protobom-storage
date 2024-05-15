@@ -90,7 +90,7 @@ func (ExternalReference) Fields() []ent.Field { //nolint: funlen
 func (ExternalReference) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("hashes", HashesEntry.Type),
-		edge.From("node", Node.Type).Ref("external_references").Required().Unique(),
+		edge.From("node", Node.Type).Ref("external_references").Unique(),
 	}
 }
 

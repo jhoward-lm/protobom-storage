@@ -49,13 +49,13 @@ func (nlc *NodeListCreate) AddNodes(n ...*Node) *NodeListCreate {
 }
 
 // SetDocumentID sets the "document" edge to the Document entity by ID.
-func (nlc *NodeListCreate) SetDocumentID(id int) *NodeListCreate {
+func (nlc *NodeListCreate) SetDocumentID(id string) *NodeListCreate {
 	nlc.mutation.SetDocumentID(id)
 	return nlc
 }
 
 // SetNillableDocumentID sets the "document" edge to the Document entity by ID if the given value is not nil.
-func (nlc *NodeListCreate) SetNillableDocumentID(id *int) *NodeListCreate {
+func (nlc *NodeListCreate) SetNillableDocumentID(id *string) *NodeListCreate {
 	if id != nil {
 		nlc = nlc.SetDocumentID(*id)
 	}
@@ -159,7 +159,7 @@ func (nlc *NodeListCreate) createSpec() (*NodeList, *sqlgraph.CreateSpec) {
 			Columns: []string{nodelist.DocumentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

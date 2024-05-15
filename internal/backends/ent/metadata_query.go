@@ -150,7 +150,7 @@ func (mq *MetadataQuery) QueryDocument() *DocumentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(metadata.Table, metadata.FieldID, selector),
 			sqlgraph.To(document.Table, document.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, metadata.DocumentTable, metadata.DocumentColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, metadata.DocumentTable, metadata.DocumentColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(mq.driver.Dialect(), step)
 		return fromU, nil
@@ -631,30 +631,31 @@ func (mq *MetadataQuery) loadDocumentTypes(ctx context.Context, query *DocumentT
 	return nil
 }
 func (mq *MetadataQuery) loadDocument(ctx context.Context, query *DocumentQuery, nodes []*Metadata, init func(*Metadata), assign func(*Metadata, *Document)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[string]*Metadata)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Metadata)
 	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
+		fk := nodes[i].ID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.withFKs = true
-	query.Where(predicate.Document(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(metadata.DocumentColumn), fks...))
-	}))
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(document.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.metadata_document
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "metadata_document" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "metadata_document" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "id" returned %v`, n.ID)
 		}
-		assign(node, n)
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

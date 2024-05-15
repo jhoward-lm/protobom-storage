@@ -138,13 +138,13 @@ func (mu *MetadataUpdate) AddDocumentTypes(d ...*DocumentType) *MetadataUpdate {
 }
 
 // SetDocumentID sets the "document" edge to the Document entity by ID.
-func (mu *MetadataUpdate) SetDocumentID(id int) *MetadataUpdate {
+func (mu *MetadataUpdate) SetDocumentID(id string) *MetadataUpdate {
 	mu.mutation.SetDocumentID(id)
 	return mu
 }
 
 // SetNillableDocumentID sets the "document" edge to the Document entity by ID if the given value is not nil.
-func (mu *MetadataUpdate) SetNillableDocumentID(id *int) *MetadataUpdate {
+func (mu *MetadataUpdate) SetNillableDocumentID(id *string) *MetadataUpdate {
 	if id != nil {
 		mu = mu.SetDocumentID(*id)
 	}
@@ -416,12 +416,12 @@ func (mu *MetadataUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if mu.mutation.DocumentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   metadata.DocumentTable,
 			Columns: []string{metadata.DocumentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -429,12 +429,12 @@ func (mu *MetadataUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := mu.mutation.DocumentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   metadata.DocumentTable,
 			Columns: []string{metadata.DocumentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -564,13 +564,13 @@ func (muo *MetadataUpdateOne) AddDocumentTypes(d ...*DocumentType) *MetadataUpda
 }
 
 // SetDocumentID sets the "document" edge to the Document entity by ID.
-func (muo *MetadataUpdateOne) SetDocumentID(id int) *MetadataUpdateOne {
+func (muo *MetadataUpdateOne) SetDocumentID(id string) *MetadataUpdateOne {
 	muo.mutation.SetDocumentID(id)
 	return muo
 }
 
 // SetNillableDocumentID sets the "document" edge to the Document entity by ID if the given value is not nil.
-func (muo *MetadataUpdateOne) SetNillableDocumentID(id *int) *MetadataUpdateOne {
+func (muo *MetadataUpdateOne) SetNillableDocumentID(id *string) *MetadataUpdateOne {
 	if id != nil {
 		muo = muo.SetDocumentID(*id)
 	}
@@ -872,12 +872,12 @@ func (muo *MetadataUpdateOne) sqlSave(ctx context.Context) (_node *Metadata, err
 	if muo.mutation.DocumentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   metadata.DocumentTable,
 			Columns: []string{metadata.DocumentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -885,12 +885,12 @@ func (muo *MetadataUpdateOne) sqlSave(ctx context.Context) (_node *Metadata, err
 	if nodes := muo.mutation.DocumentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   metadata.DocumentTable,
 			Columns: []string{metadata.DocumentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

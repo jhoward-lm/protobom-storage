@@ -14,48 +14,58 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Document {
+func ID(id string) predicate.Document {
 	return predicate.Document(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Document {
+func IDEQ(id string) predicate.Document {
 	return predicate.Document(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Document {
+func IDNEQ(id string) predicate.Document {
 	return predicate.Document(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Document {
+func IDIn(ids ...string) predicate.Document {
 	return predicate.Document(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Document {
+func IDNotIn(ids ...string) predicate.Document {
 	return predicate.Document(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Document {
+func IDGT(id string) predicate.Document {
 	return predicate.Document(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Document {
+func IDGTE(id string) predicate.Document {
 	return predicate.Document(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Document {
+func IDLT(id string) predicate.Document {
 	return predicate.Document(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Document {
+func IDLTE(id string) predicate.Document {
 	return predicate.Document(sql.FieldLTE(FieldID, id))
+}
+
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.Document {
+	return predicate.Document(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.Document {
+	return predicate.Document(sql.FieldContainsFold(FieldID, id))
 }
 
 // HasMetadata applies the HasEdge predicate on the "metadata" edge.
@@ -63,7 +73,7 @@ func HasMetadata() predicate.Document {
 	return predicate.Document(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, MetadataTable, MetadataColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, MetadataTable, MetadataColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

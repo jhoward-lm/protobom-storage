@@ -24,12 +24,12 @@ const (
 	// Table holds the table name of the document in the database.
 	Table = "documents"
 	// MetadataTable is the table that holds the metadata relation/edge.
-	MetadataTable = "documents"
+	MetadataTable = "metadata"
 	// MetadataInverseTable is the table name for the Metadata entity.
 	// It exists in this package in order to avoid circular dependency with the "metadata" package.
 	MetadataInverseTable = "metadata"
 	// MetadataColumn is the table column denoting the metadata relation/edge.
-	MetadataColumn = "metadata_document"
+	MetadataColumn = "id"
 	// NodeListTable is the table that holds the node_list relation/edge.
 	NodeListTable = "documents"
 	// NodeListInverseTable is the table name for the NodeList entity.
@@ -47,7 +47,6 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "documents"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"metadata_document",
 	"node_list_document",
 }
 
@@ -65,6 +64,11 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
+)
 
 // OrderOption defines the ordering options for the Document queries.
 type OrderOption func(*sql.Selector)
@@ -91,7 +95,7 @@ func newMetadataStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MetadataInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, MetadataTable, MetadataColumn),
+		sqlgraph.Edge(sqlgraph.O2O, false, MetadataTable, MetadataColumn),
 	)
 }
 func newNodeListStep() *sqlgraph.Step {

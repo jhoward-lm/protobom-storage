@@ -107,13 +107,13 @@ func (mc *MetadataCreate) AddDocumentTypes(d ...*DocumentType) *MetadataCreate {
 }
 
 // SetDocumentID sets the "document" edge to the Document entity by ID.
-func (mc *MetadataCreate) SetDocumentID(id int) *MetadataCreate {
+func (mc *MetadataCreate) SetDocumentID(id string) *MetadataCreate {
 	mc.mutation.SetDocumentID(id)
 	return mc
 }
 
 // SetNillableDocumentID sets the "document" edge to the Document entity by ID if the given value is not nil.
-func (mc *MetadataCreate) SetNillableDocumentID(id *int) *MetadataCreate {
+func (mc *MetadataCreate) SetNillableDocumentID(id *string) *MetadataCreate {
 	if id != nil {
 		mc = mc.SetDocumentID(*id)
 	}
@@ -279,17 +279,18 @@ func (mc *MetadataCreate) createSpec() (*Metadata, *sqlgraph.CreateSpec) {
 	if nodes := mc.mutation.DocumentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   metadata.DocumentTable,
 			Columns: []string{metadata.DocumentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(document.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.ID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
