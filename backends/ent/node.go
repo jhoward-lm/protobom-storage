@@ -29,6 +29,18 @@ type (
 
 var _ storage.StoreRetriever[*sbom.Node] = (*NodeBackend)(nil)
 
+func NewNodeBackend(opts NodeBackendOptions) *NodeBackend {
+
+	bk := NewBackend[*sbom.Node]().WithBackendOptions(*opts.BackendOptions)
+
+	backend := &NodeBackend{
+		Backend: bk,
+		Options: opts,
+	}
+
+	return backend
+}
+
 func (backend *NodeBackend) Store(n *sbom.Node, _opts *storage.StoreOptions) error {
 	err := backend.client.Node.Create().
 		SetID(n.Id).

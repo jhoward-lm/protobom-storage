@@ -31,14 +31,11 @@ func (backend *NodeListBackend) Store(nodeList *sbom.NodeList, _opts *storage.St
 		return fmt.Errorf("failed creating ent.NodeList: %w", err)
 	}
 
-	nodeOpts := &storage.StoreOptions{
-		BackendOptions: NodeBackendOptions{NodeListID: id},
-	}
-
-	nodeBackend := &NodeBackend{NewBackend[*sbom.Node](), NodeBackendOptions{NodeListID: id}}
+	storeOpts, backendOpt := backend.getNodeBackendOpt(id)
+	nodeBackend := NewNodeBackend(backendOpt)
 
 	for _, n := range nodeList.Nodes {
-		if err := nodeBackend.Store(n, nodeOpts); err != nil {
+		if err := nodeBackend.Store(n, storeOpts); err != nil {
 			return fmt.Errorf("failed creating ent.Nodes: %w", err)
 		}
 	}
@@ -48,4 +45,19 @@ func (backend *NodeListBackend) Store(nodeList *sbom.NodeList, _opts *storage.St
 
 func (backend *NodeListBackend) Retrieve(_id string, _opts *storage.RetrieveOptions) (*sbom.NodeList, error) {
 	return nil, nil
+}
+
+func (backend *NodeListBackend) getNodeBackendOpt(id int) (*storage.StoreOptions, NodeBackendOptions) {
+	backendOpt := NodeBackendOptions{
+		NodeListID: id,
+		BackendOptions: &BackendOptions[*sbom.Node]{
+			DatabaseFile: backend.Options.DatabaseFile,
+		},
+	}
+
+	storeOpt := &storage.StoreOptions{
+		BackendOptions: backendOpt,
+	}
+
+	return storeOpt, backendOpt
 }

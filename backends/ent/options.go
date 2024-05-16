@@ -74,10 +74,20 @@ func WithDatabaseFile[T storage.ProtobomType](file string) Option[T] {
 		backend.WithDatabaseFile(file)
 	}
 }
+func WithBackendOptions[T storage.ProtobomType](opt BackendOptions[T]) Option[T] {
+	return func(backend *Backend[T]) {
+		backend.WithBackendOptions(opt)
+	}
+}
 
 func (backend *Backend[any]) WithDatabaseFile(file string) *Backend[any] {
 	backend.Options.DatabaseFile = file
 
+	return backend
+}
+
+func (backend *Backend[any]) WithBackendOptions(opt BackendOptions[any]) *Backend[any] {
+	backend.Options = opt
 	return backend
 }
 
